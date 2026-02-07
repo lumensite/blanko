@@ -3,62 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blanko Space | Регистрация</title>
+    <title>Blanko.space | World</title>
+    <!-- Подключаем стили для шахмат -->
+    <link rel="stylesheet" href="https://unpkg.com">
     <style>
-        :root { --bg: #ffffff; --text: #1a1a1a; --accent: #000; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .container { opacity: 0; animation: fadeIn 1s forwards; max-width: 320px; width: 90%; }
-        h1 { font-size: 2.5rem; font-weight: 200; margin-bottom: 30px; letter-spacing: -1px; }
-        form { display: flex; flex-direction: column; gap: 15px; }
-        input {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-        input:focus { border-color: var(--accent); }
-        button {
-            padding: 12px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-        button:hover { opacity: 0.8; }
-        .footer { margin-top: 20px; font-size: 0.8rem; color: #888; }
-        @keyframes fadeIn { to { opacity: 1; } }
+        :root { --bg: #f4f4f4; --card: #ffffff; --text: #1a1a1a; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; margin-bottom: 30px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        
+        /* Шахматы */
+        #board { width: 400px; margin: 0 auto; border: 5px solid #333; border-radius: 5px; }
+        @media (max-width: 450px) { #board { width: 100%; } }
+
+        select, input { padding: 8px; border-radius: 5px; border: 1px solid #ddd; margin-top: 10px; width: 100%; }
+        h2 { font-weight: 300; margin-bottom: 10px; }
+        #time { font-size: 2rem; font-weight: bold; font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>blanko.space</h1>
-        
-        <!-- Замените 'YOUR_ID' на ID из Formspree.io для получения писем -->
-        <form action="https://formspree.io" method="POST">
-            <input type="text" name="username" placeholder="Логин" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Пароль" required>
-            <button type="submit">Присоединиться</button>
-        </form>
+    <h1>blanko.space</h1>
 
-        <div class="footer">Чистое пространство для ваших идей.</div>
+    <div class="dashboard">
+        <!-- Блок Времени -->
+        <div class="card">
+            <h2>Время</h2>
+            <div id="time">00:00:00</div>
+            <select id="timezone-select">
+                <option value="Europe/Moscow">Москва (UTC+3)</option>
+                <option value="Europe/London">Лондон (UTC+0)</option>
+                <option value="America/New_York">Нью-Йорк (UTC-5)</option>
+                <option value="Asia/Tokyo">Токио (UTC+9)</option>
+            </select>
+        </div>
+
+        <!-- Блок Погоды -->
+        <div class="card">
+            <h2>Погода</h2>
+            <input type="text" id="city-input" placeholder="Введите город... (на англ.)" value="Kazan">
+            <div id="weather-info" style="margin-top:15px; font-size: 1.2rem;">Загрузка...</div>
+        </div>
     </div>
 
+    <!-- Блок Шахмат -->
+    <div class="card" style="width: 100%; max-width: 500px;">
+        <h2>Open World Chess</h2>
+        <div id="board"></div>
+        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">Свободный холст: передвигайте фигуры как хотите</p>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="https://code.jquery.com"></script>
+    <script src="https://unpkg.com"></script>
+    
+    <script>
+        // --- ЧАСЫ ---
+        let currentTZ = "Europe/Moscow";
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ru-RU', { timeZone: currentTZ });
+            document.getElementById('time').textContent = timeStr;
+        }
+        document.getElementById('timezone-select').addEventListener('change', (e) => currentTZ = e.target.value);
+        setInterval(updateTime, 1000);
+
+        // --- ПОГОДА (через бесплатное API) ---
+        async function getSchema(city) {
+            try {
+                const res = await fetch(`https://api.wttr.in{city}?format=3`);
+                const data = await res.text();
+                document.getElementById('weather-info').textContent = data;
+            } catch {
+                document.getElementById('weather-info').textContent = "Ошибка загрузки";
+            }
+        }
+        document.getElementById('city-input').addEventListener('change', (e) => getSchema(e.target.value));
+        getSchema('Kazan');
+
+        // --- ШАХМАТЫ ---
+        // 'trashcan' позволяет выбрасывать фигуры за доску, 'sparePieces' дает бесконечные запасы
+        var board = Chessboard('board', {
+            draggable: true,
+            dropOffBoard: 'trashcan',
+            sparePieces: true,
+            position: 'start'
+        });
+    </script>
 </body>
 </html>

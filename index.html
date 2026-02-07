@@ -3,93 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blanko.space | World</title>
-    <!-- Подключаем стили для шахмат -->
-    <link rel="stylesheet" href="https://unpkg.com">
+    <title>Blanko Space | World</title>
     <style>
-        :root { --bg: #f4f4f4; --card: #ffffff; --text: #1a1a1a; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        :root { --bg: #ffffff; --card: #f9f9f9; --text: #1a1a1a; --accent: #007AFF; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; margin-bottom: 30px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 900px; margin-bottom: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #eee; text-align: center; }
         
         /* Шахматы */
-        #board { width: 400px; margin: 0 auto; border: 5px solid #333; border-radius: 5px; }
-        @media (max-width: 450px) { #board { width: 100%; } }
-
-        select, input { padding: 8px; border-radius: 5px; border: 1px solid #ddd; margin-top: 10px; width: 100%; }
-        h2 { font-weight: 300; margin-bottom: 10px; }
-        #time { font-size: 2rem; font-weight: bold; font-family: monospace; }
+        #chess-board { 
+            display: grid; grid-template-columns: repeat(8, 1fr); 
+            width: 320px; height: 320px; border: 4px solid #333; margin: 10px auto; 
+            user-select: none;
+        }
+        .square { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; }
+        .white { background: #fff; }
+        .black { background: #d1d1d1; }
+        .controls { margin-top: 10px; display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+        .piece-btn { font-size: 20px; padding: 5px; cursor: pointer; background: #eee; border: 1px solid #ccc; border-radius: 4px; }
+        
+        h2 { font-weight: 300; margin: 0 0 10px 0; }
+        #time { font-size: 2rem; font-weight: bold; }
+        input, select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px; width: 100%; }
     </style>
 </head>
 <body>
 
-    <h1>blanko.space</h1>
+    <h1 style="font-weight: 200; margin-bottom: 30px;">blanko.space</h1>
 
-    <div class="dashboard">
-        <!-- Блок Времени -->
+    <div class="grid">
+        <!-- Часы -->
         <div class="card">
             <h2>Время</h2>
             <div id="time">00:00:00</div>
-            <select id="timezone-select">
-                <option value="Europe/Moscow">Москва (UTC+3)</option>
-                <option value="Europe/London">Лондон (UTC+0)</option>
-                <option value="America/New_York">Нью-Йорк (UTC-5)</option>
-                <option value="Asia/Tokyo">Токио (UTC+9)</option>
+            <select id="tz">
+                <option value="Europe/Moscow">Москва</option>
+                <option value="Europe/London">Лондон</option>
+                <option value="America/New_York">Нью-Йорк</option>
             </select>
         </div>
 
-        <!-- Блок Погоды -->
+        <!-- Погода -->
         <div class="card">
             <h2>Погода</h2>
-            <input type="text" id="city-input" placeholder="Введите город... (на англ.)" value="Kazan">
-            <div id="weather-info" style="margin-top:15px; font-size: 1.2rem;">Загрузка...</div>
+            <div id="weather">Загрузка...</div>
+            <input type="text" id="city" placeholder="Город (на англ.)" value="Kazan">
         </div>
     </div>
 
-    <!-- Блок Шахмат -->
-    <div class="card" style="width: 100%; max-width: 500px;">
-        <h2>Open World Chess</h2>
-        <div id="board"></div>
-        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">Свободный холст: передвигайте фигуры как хотите</p>
+    <!-- Шахматы Открытый Мир -->
+    <div class="card">
+        <h2>Шахматы: Свободный режим</h2>
+        <div id="chess-board"></div>
+        <div class="controls">
+            <span class="piece-btn" onclick="setPiece('♖')">♖</span>
+            <span class="piece-btn" onclick="setPiece('♘')">♘</span>
+            <span class="piece-btn" onclick="setPiece('♗')">♗</span>
+            <span class="piece-btn" onclick="setPiece('♕')">♕</span>
+            <span class="piece-btn" onclick="setPiece('♔')">♔</span>
+            <span class="piece-btn" onclick="setPiece('♙')">♙</span>
+            <span class="piece-btn" onclick="setPiece('')" style="font-size: 14px;">Стереть</span>
+        </div>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 10px;">Нажмите на фигуру, затем на клетку доски</p>
     </div>
 
-    <!-- Скрипты -->
-    <script src="https://code.jquery.com"></script>
-    <script src="https://unpkg.com"></script>
-    
     <script>
-        // --- ЧАСЫ ---
-        let currentTZ = "Europe/Moscow";
-        function updateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('ru-RU', { timeZone: currentTZ });
-            document.getElementById('time').textContent = timeStr;
+        // ЧАСЫ
+        let tz = "Europe/Moscow";
+        function tick() {
+            document.getElementById('time').innerText = new Date().toLocaleTimeString('ru-RU', {timeZone: tz});
         }
-        document.getElementById('timezone-select').addEventListener('change', (e) => currentTZ = e.target.value);
-        setInterval(updateTime, 1000);
+        document.getElementById('tz').onchange = (e) => tz = e.target.value;
+        setInterval(tick, 1000);
 
-        // --- ПОГОДА (через бесплатное API) ---
-        async function getSchema(city) {
-            try {
-                const res = await fetch(`https://api.wttr.in{city}?format=3`);
-                const data = await res.text();
-                document.getElementById('weather-info').textContent = data;
-            } catch {
-                document.getElementById('weather-info').textContent = "Ошибка загрузки";
-            }
+        // ПОГОДА
+        async function updateWeather(c) {
+            const r = await fetch(`https://api.wttr.in{c}?format=1`);
+            document.getElementById('weather').innerText = await r.text();
         }
-        document.getElementById('city-input').addEventListener('change', (e) => getSchema(e.target.value));
-        getSchema('Kazan');
+        document.getElementById('city').onchange = (e) => updateWeather(e.target.value);
+        updateWeather('Kazan');
 
-        // --- ШАХМАТЫ ---
-        // 'trashcan' позволяет выбрасывать фигуры за доску, 'sparePieces' дает бесконечные запасы
-        var board = Chessboard('board', {
-            draggable: true,
-            dropOffBoard: 'trashcan',
-            sparePieces: true,
-            position: 'start'
-        });
+        // ШАХМАТЫ (Логика открытого мира)
+        const board = document.getElementById('chess-board');
+        let selectedPiece = '♔';
+
+        function setPiece(p) { selectedPiece = p; }
+
+        for (let i = 0; i < 64; i++) {
+            const square = document.createElement('div');
+            const isBlack = (Math.floor(i / 8) + i) % 2 === 1;
+            square.className = `square ${isBlack ? 'black' : 'white'}`;
+            
+            // Начальная расстановка (пустая доска для песочницы)
+            square.onclick = () => square.innerText = selectedPiece;
+            board.appendChild(square);
+        }
     </script>
 </body>
 </html>
